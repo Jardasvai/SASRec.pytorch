@@ -55,13 +55,18 @@ if __name__ == '__main__':
     # 计算训练批次，batch是一次训练时用到的样本数，分成多批次训练，引入一定随机性，user_train是总的样本数
     cc = 0.0
     for u in user_train:
+        #cc：统计训练集item的总长度
         cc += len(user_train[u])
     print('average sequence length: %.2f' % (cc / len(user_train)))
+    #打印序列的平均长度
     
     f = open(os.path.join(args.dataset + '_' + args.train_dir, 'log.txt'), 'w')
-    
+    # 打开日志文件
+
     sampler = WarpSampler(user_train, usernum, itemnum, batch_size=args.batch_size, maxlen=args.maxlen, n_workers=3)
+    #实例化WarpSample类，通过采样用户生成数据
     model = SASRec(usernum, itemnum, args).to(args.device) # no ReLU activation in original SASRec implementation?
+    #模型类实例化
     
     for name, param in model.named_parameters():
         try:

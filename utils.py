@@ -15,15 +15,16 @@ def random_neq(l, r, s):
 # 返回一个不在s中的[l,r]范围内的随机数
 
 def sample_function(user_train, usernum, itemnum, batch_size, maxlen, result_queue, SEED):
+    #采样
     def sample():
-
+        #随机取出用户序列中的一个
         user = np.random.randint(1, usernum + 1)
         while len(user_train[user]) <= 1: user = np.random.randint(1, usernum + 1)
-
-        seq = np.zeros([maxlen], dtype=np.int32)
+        #如果训练集数量小于2,则重新选择
+        seq = np.zeros([maxlen], dtype=np.int32) #长为maxlen的ndarray
         pos = np.zeros([maxlen], dtype=np.int32)
         neg = np.zeros([maxlen], dtype=np.int32)
-        nxt = user_train[user][-1]
+        nxt = user_train[user][-1]  #当前用户的最后一个item
         idx = maxlen - 1
 
         ts = set(user_train[user])
@@ -31,9 +32,9 @@ def sample_function(user_train, usernum, itemnum, batch_size, maxlen, result_que
             seq[idx] = i
             pos[idx] = nxt
             if nxt != 0: neg[idx] = random_neq(1, itemnum + 1, ts)
-            nxt = i
-            idx -= 1
-            if idx == -1: break
+            nxt = i #当前轮次的i，实际上是下一轮次的nxt
+            idx -= 1 #轮次+1,索引-1
+            if idx == -1: break     #如果item序列长度超过maxlen,则只取最近的maxlen个
 
         return (user, seq, pos, neg)
 
@@ -78,33 +79,41 @@ def data_partition(fname):
     usernum = 0
     itemnum = 0
     User = defaultdict(list)
+    #初始化一个defaultdict对象，默认值为list
     user_train = {}
+    #初始化user_train，对象类型是字典
     user_valid = {}
     user_test = {}
     # assume user/item index starting from 1
     f = open('data/%s.txt' % fname, 'r')
+    #根据文件名打开数据集目录下的数据集，并每一行进行读取
     for line in f:
         u, i = line.rstrip().split(' ')
+        #rstrip删除line末尾的指定字符，默认是空白字符，将字符串分割，u是第一项用户id，i是第二项物品id
         u = int(u)
         i = int(i)
+        #转为整数
         usernum = max(u, usernum)
         itemnum = max(i, itemnum)
+        #循环获得用户和物品的最大id值，即用户数量和item数量
         User[u].append(i)
 
     for user in User:
-        nfeedback = len(User[user])
+        nfeedback = len(User[user])#计算User对应的item数量
         if nfeedback < 3:
+            #如果对应item数量<3，则对应的item列表直接作为user_train[user]中的值，不进行划分
             user_train[user] = User[user]
             user_valid[user] = []
             user_test[user] = []
         else:
+            #否则倒数第二个item作为user_valid[user]的值，倒数第一个item作为user_test[user]的值，前面所有的值都作为训练集
             user_train[user] = User[user][:-2]
             user_valid[user] = []
             user_valid[user].append(User[user][-2])
             user_test[user] = []
             user_test[user].append(User[user][-1])
     return [user_train, user_valid, user_test, usernum, itemnum]
-
+    #返回训练集、验证集、测试集以及用户数量和item数量
 # TODO: merge evaluate functions for test and val set
 # evaluate on test set
 def evaluate(model, dataset, args):
