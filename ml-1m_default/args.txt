@@ -1,6 +1,6 @@
 batch_size,128
 dataset,ml-1m
-device,cuda
+device,cpu
 dropout_rate,0.5
 hidden_units,50
 inference_only,True

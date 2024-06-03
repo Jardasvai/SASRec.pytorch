@@ -12,7 +12,7 @@ def random_neq(l, r, s):
     while t in s:
         t = np.random.randint(l, r)
     return t
-
+# 返回一个不在s中的[l,r]范围内的随机数
 
 def sample_function(user_train, usernum, itemnum, batch_size, maxlen, result_queue, SEED):
     def sample():
@@ -74,6 +74,7 @@ class WarpSampler(object):
 
 # train/val/test data generation
 def data_partition(fname):
+    #对数据集进行划分
     usernum = 0
     itemnum = 0
     User = defaultdict(list)

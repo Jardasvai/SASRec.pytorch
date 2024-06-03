@@ -10,11 +10,17 @@ def str2bool(s):
     if s not in {'false', 'true'}:
         raise ValueError('Not a valid boolean string')
     return s == 'true'
+# 如果字符串s为‘true’则返回true,如果为‘false’返回false,否则报错
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', required=True)
-parser.add_argument('--train_dir', required=True)
-parser.add_argument('--batch_size', default=128, type=int)
+#创建一个解析对象
+# 定义命令行参数
+parser.add_argument('--dataset', required=True)     #必要参数，必须在命令行中指定
+
+parser.add_argument('--train_dir', required=True)       #必要参数
+
+parser.add_argument('--batch_size', default=128, type=int)  #默认值为128
+
 parser.add_argument('--lr', default=0.001, type=float)
 parser.add_argument('--maxlen', default=50, type=int)
 parser.add_argument('--hidden_units', default=50, type=int)
@@ -28,18 +34,25 @@ parser.add_argument('--inference_only', default=False, type=str2bool)
 parser.add_argument('--state_dict_path', default=None, type=str)
 
 args = parser.parse_args()
+#调用parser_args()对命令行参数解析
+
 if not os.path.isdir(args.dataset + '_' + args.train_dir):
     os.makedirs(args.dataset + '_' + args.train_dir)
+    #如果当前模型不存在，则创建该路径，并在该路径下训练模型
+
 with open(os.path.join(args.dataset + '_' + args.train_dir, 'args.txt'), 'w') as f:
     f.write('\n'.join([str(k) + ',' + str(v) for k, v in sorted(vars(args).items(), key=lambda x: x[0])]))
-f.close()
+#将参数内容写入到该模型路径下的args.txt中，每一行是形式参数和实际参数
+#f.close()
+#with 语句会在代码块执行完毕后自动关闭文件，无论代码块中发生了什么异常。
 
 if __name__ == '__main__':
     # global dataset
     dataset = data_partition(args.dataset)
-
+    #数据集划分，data_partition在utils中
     [user_train, user_valid, user_test, usernum, itemnum] = dataset
     num_batch = len(user_train) // args.batch_size # tail? + ((len(user_train) % args.batch_size) != 0)
+    # 计算训练批次，batch是一次训练时用到的样本数，分成多批次训练，引入一定随机性，user_train是总的样本数
     cc = 0.0
     for u in user_train:
         cc += len(user_train[u])
